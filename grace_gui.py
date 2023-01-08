@@ -13,8 +13,8 @@ import hr_msgs.msg
 import rosbag
 import geometry_msgs.msg
 import dynamic_reconfigure.client
-from cv_bridge import CvBridge
 import cv2
+from cv_bridge import CvBridge
 from copy import deepcopy
 import os
 from tkinter import *
