@@ -140,6 +140,9 @@ class Grace_GUI:
         self.source_0_state_estimation_img_vis = PIL.ImageTk.PhotoImage(image = PIL.Image.fromarray(cv2.cvtColor(cv2_img_from_ros_img_msg, cv2.COLOR_BGR2RGB)))
         self.source_0_state_estimation_img_canvas.itemconfig(self.source_0_state_estimation_img_container,image=self.source_0_state_estimation_img_vis)
   
+        print(msg.attention.data)
+        print(msg.emotion.data)
+
 
     def constructGUI(self):
         #UI Frame
