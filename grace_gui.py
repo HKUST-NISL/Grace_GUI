@@ -39,6 +39,9 @@ class Grace_GUI:
     target_state_estimation_topic = "/grace_proj/emotion_attention_target_person_output_topic" 
 
 
+    estimated_attention_generic_text = "Paying Attention? "
+    estimated_emotion_generic_text = "Emotion: "
+
     def __init__(self):
         rospy.init_node(self.node_name)
         
@@ -145,9 +148,9 @@ class Grace_GUI:
         cv2_img_from_ros_img_msg = self.cv_bridge.imgmsg_to_cv2(msg.visualization_frame,desired_encoding='bgr8')
         self.source_0_state_estimation_img_vis = PIL.ImageTk.PhotoImage(image = PIL.Image.fromarray(cv2.cvtColor(cv2_img_from_ros_img_msg, cv2.COLOR_BGR2RGB)))
         self.source_0_state_estimation_img_canvas.itemconfig(self.source_0_state_estimation_img_container,image=self.source_0_state_estimation_img_vis)
-  
-        # print(msg.attention.data)
-        # print(msg.emotion.data)
+        #Display text on the gui as well
+        self.estimatedAttentionText.config(text = self.estimated_attention_generic_text + msg.attention.data)
+        self.estimatedEmotionText.config(text = self.estimated_emotion_generic_text + msg.emotion.data)
 
 
     def constructGUI(self):
@@ -170,7 +173,7 @@ class Grace_GUI:
             variable= self.attention_enabled_tk,
             onvalue = True, offvalue = False,
             command = self.__toggleAttentionBtnCallback)
-        enable_attention.place(y=50, x= 200)
+        enable_attention.place(y=150, x= 50)
 
 
         #Aversion: enable, disable, state
@@ -181,10 +184,10 @@ class Grace_GUI:
             variable= self.aversion_enabled_tk,
             onvalue = True, offvalue = False,
             command = self.__toggleAversionBtnCallback)
-        enableAversion.place(y=150, x=50)
+        enableAversion.place(y=250, x=50)
 
         self.aversionStateText = Label(self.grace_monitor_frame, text = '')
-        self.aversionStateText.place(y=150, x=400)
+        self.aversionStateText.place(y=250, x=450)
 
 
         # #Deprecated: now nodding is controlled directly by the dialogue system
@@ -205,34 +208,42 @@ class Grace_GUI:
         #Target Selection
         self.target_reg_input = Text(
             self.grace_monitor_frame,
-            height = 2,
-            width = 10)
+            height = 1,
+            width = 5)
         self.target_reg_input.pack()
-        self.target_reg_input.place(y=50, x= 650)
+        self.target_reg_input.place(y=150, x= 450)
 
         confirm_target_reg = Button(self.grace_monitor_frame,
                                 text = "REG", 
                                 command = self.__targetRegBtnCallback)
-        confirm_target_reg.place(y=50, x= 550)
+        confirm_target_reg.place(y=150, x= 550)
 
 
         self.blank_img = PIL.ImageTk.PhotoImage(image=PIL.Image.new("RGB", (640, 480)))
-        
+
+
+        #Visualize raw camera view
+        self.source_0_img_canvas = Canvas(self.grace_monitor_frame, width = 640, height = 480)
+        self.source_0_img_container = self.source_0_img_canvas.create_image(0,0, anchor=NW, image=self.blank_img)
+        self.source_0_img_canvas.place(y=10, x=1450)   
+
         #Visualize the image of the target person
         self.source_0_target_img_canvas = Canvas(self.grace_monitor_frame, width = 640, height = 480)
         self.source_0_target_img_container = self.source_0_target_img_canvas.create_image(0,0, anchor=NW, image=self.blank_img)
         self.source_0_target_img_canvas.place(y=350, x=50)
 
 
-        #Visualize the image output by the head pose, emotion and gaze
+        #Display the estimated state
+        #Texts
+        self.estimatedAttentionText = Label(self.grace_monitor_frame, text = self.estimated_attention_generic_text)
+        self.estimatedAttentionText.place(y=150, x=950)
+        self.estimatedEmotionText = Label(self.grace_monitor_frame, text = self.estimated_emotion_generic_text)
+        self.estimatedEmotionText.place(y=250, x=950)
+        #Annotated image
         self.source_0_state_estimation_img_canvas = Canvas(self.grace_monitor_frame, width = 640, height = 480)
         self.source_0_state_estimation_img_container = self.source_0_state_estimation_img_canvas.create_image(0,0, anchor=NW, image=self.blank_img)
-        self.source_0_state_estimation_img_canvas.place(y=850, x=50)
+        self.source_0_state_estimation_img_canvas.place(y=350, x=700)
 
-        #Visualize the image of the camera view
-        self.source_0_img_canvas = Canvas(self.grace_monitor_frame, width = 640, height = 480)
-        self.source_0_img_container = self.source_0_img_canvas.create_image(0,0, anchor=NW, image=self.blank_img)
-        self.source_0_img_canvas.place(y=350, x=750)
 
 
             
