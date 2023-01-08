@@ -30,8 +30,9 @@ class Grace_GUI:
     toggle_attention_topic = "/grace_proj/toggle_attention"
     toggle_aversion_topic = "/grace_proj/toggle_aversion"
     aversion_text_topic = "/grace_proj/aversion_text"
-    toggle_nodding_topic = "/grace_proj/toggle_nodding"
-    nodding_text_topic = "/grace_proj/nodding_text"
+    # #Deprecated: now nodding is controlled directly by the dialogue system
+    # toggle_nodding_topic = "/grace_proj/toggle_nodding"
+    # nodding_text_topic = "/grace_proj/nodding_text"
     attention_target_topic = "/grace_proj/attention_target_idx"
     attention_target_img_topic = "/grace_proj/attention_target_img"
     annotated_tracking_stream_topic = "/grace_proj/annotated_tracking_stream"
@@ -44,15 +45,17 @@ class Grace_GUI:
         self.stop_pub = rospy.Publisher(self.stop_topic, std_msgs.msg.Bool, queue_size=self.topic_queue_size)
         self.toggle_attention_pub = rospy.Publisher(self.toggle_attention_topic, std_msgs.msg.Bool, queue_size=self.topic_queue_size)
         self.toggle_aversion_pub = rospy.Publisher(self.toggle_aversion_topic, std_msgs.msg.Bool, queue_size=self.topic_queue_size)
-        self.toggle_nodding_pub = rospy.Publisher(self.toggle_nodding_topic, std_msgs.msg.Bool, queue_size=self.topic_queue_size)
+        # #Deprecated: now nodding is controlled directly by the dialogue system
+        # self.toggle_nodding_pub = rospy.Publisher(self.toggle_nodding_topic, std_msgs.msg.Bool, queue_size=self.topic_queue_size)
         self.attention_target_pub = rospy.Publisher(self.attention_target_topic, std_msgs.msg.Int16, queue_size=self.topic_queue_size)
 
         self.stop_sub = rospy.Subscriber(self.stop_topic, std_msgs.msg.Bool, self.__stopMsgCallback, queue_size=self.topic_queue_size)
         self.toggle_attention_sub = rospy.Subscriber(self.toggle_attention_topic, std_msgs.msg.Bool, self.__toggleAttentionMsgCallback, queue_size=self.topic_queue_size)
         self.toggle_aversion_sub = rospy.Subscriber(self.toggle_aversion_topic, std_msgs.msg.Bool, self.__toggleAversionMsgCallback, queue_size=self.topic_queue_size)
         self.aversion_text_sub = rospy.Subscriber(self.aversion_text_topic, std_msgs.msg.String, self.__aversionTextMsgCallback, queue_size=self.topic_queue_size)
-        self.toggle_nodding_sub = rospy.Subscriber(self.toggle_nodding_topic, std_msgs.msg.Bool, self.__toggleNoddingMsgCallback, queue_size=self.topic_queue_size)
-        self.nodding_text_sub = rospy.Subscriber(self.nodding_text_topic, std_msgs.msg.String, self.__noddingTextMsgCallback, queue_size=self.topic_queue_size)
+        # #Deprecated: now nodding is controlled directly by the dialogue system
+        # self.toggle_nodding_sub = rospy.Subscriber(self.toggle_nodding_topic, std_msgs.msg.Bool, self.__toggleNoddingMsgCallback, queue_size=self.topic_queue_size)
+        # self.nodding_text_sub = rospy.Subscriber(self.nodding_text_topic, std_msgs.msg.String, self.__noddingTextMsgCallback, queue_size=self.topic_queue_size)
         self.attention_target_img_sub = rospy.Subscriber(self.attention_target_img_topic, sensor_msgs.msg.Image, self.__attentionTargetImgMsgCallback, queue_size=self.topic_queue_size)
         self.annotated_tracking_stream_sub = rospy.Subscriber(self.annotated_tracking_stream_topic, sensor_msgs.msg.Image, self.__annotatedTrackingStreamMsgCallback, queue_size=self.topic_queue_size)
         self.target_state_estimation_sub = rospy.Subscriber(self.target_state_estimation_topic, grace_attn_msgs.msg.EmotionAttentionResult, self.__targetStateEstimationMsgCallback, queue_size=self.topic_queue_size)
@@ -88,19 +91,22 @@ class Grace_GUI:
 
     def __aversionTextMsgCallback(self,msg):
         self.aversionStateText.config(text = msg.data)
-    
-    def __toggleNoddingBtnCallback(self):
-        self.toggle_nodding_pub.publish(std_msgs.msg.Bool(self.nodding_enabled_tk.get()))
 
-    def __toggleNoddingMsgCallback(self, msg):
-        #GUI Adjustment upon receiving the nodding toggling message
-        self.nodding_enabled_tk.set(
-            self.attention_enabled_tk.get()
-            and
-            msg.data)
 
-    def __noddingTextMsgCallback(self,msg):
-        self.noddingStateText.config(text = msg.data)
+    # #Deprecated: now nodding is controlled directly by the dialogue system
+
+    # def __toggleNoddingBtnCallback(self):
+    #     self.toggle_nodding_pub.publish(std_msgs.msg.Bool(self.nodding_enabled_tk.get()))
+
+    # def __toggleNoddingMsgCallback(self, msg):
+    #     #GUI Adjustment upon receiving the nodding toggling message
+    #     self.nodding_enabled_tk.set(
+    #         self.attention_enabled_tk.get()
+    #         and
+    #         msg.data)
+
+    # def __noddingTextMsgCallback(self,msg):
+    #     self.noddingStateText.config(text = msg.data)
     
     def __guiClose(self):
         self.grace_monitor_frame.destroy()
@@ -180,18 +186,20 @@ class Grace_GUI:
         self.aversionStateText = Label(self.grace_monitor_frame, text = '')
         self.aversionStateText.place(y=150, x=400)
 
-        #Nodding: enable, disable, state
-        self.nodding_enabled_tk = BooleanVar()
-        enableNodding = Checkbutton(
-            self.grace_monitor_frame,
-            text = "ENABLE Nodding", 
-            variable= self.nodding_enabled_tk,
-            onvalue = True, offvalue = False,
-            command = self.__toggleNoddingBtnCallback)
-        enableNodding.place(y=250, x=50)
+
+        # #Deprecated: now nodding is controlled directly by the dialogue system
+        # #Nodding: enable, disable, state
+        # self.nodding_enabled_tk = BooleanVar()
+        # enableNodding = Checkbutton(
+        #     self.grace_monitor_frame,
+        #     text = "ENABLE Nodding", 
+        #     variable= self.nodding_enabled_tk,
+        #     onvalue = True, offvalue = False,
+        #     command = self.__toggleNoddingBtnCallback)
+        # enableNodding.place(y=250, x=50)
         
-        self.noddingStateText = Label(self.grace_monitor_frame, text = '')
-        self.noddingStateText.place(y=250, x=400)
+        # self.noddingStateText = Label(self.grace_monitor_frame, text = '')
+        # self.noddingStateText.place(y=250, x=400)
 
 
         #Target Selection
