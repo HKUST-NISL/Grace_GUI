@@ -10,6 +10,7 @@ import rospy
 import sensor_msgs.msg
 import std_msgs.msg
 import hr_msgs.msg
+import grace_attn_msgs.msg
 import rosbag
 import geometry_msgs.msg
 import dynamic_reconfigure.client
@@ -34,6 +35,7 @@ class Grace_GUI:
     attention_target_topic = "/grace_proj/attention_target_idx"
     attention_target_img_topic = "/grace_proj/attention_target_img"
     annotated_tracking_stream_topic = "/grace_proj/annotated_tracking_stream"
+    target_state_estimation_topic = "/grace_proj/emotion_attention_target_person_output_topic" 
 
 
     def __init__(self):
@@ -53,6 +55,7 @@ class Grace_GUI:
         self.nodding_text_sub = rospy.Subscriber(self.nodding_text_topic, std_msgs.msg.String, self.__noddingTextMsgCallback, queue_size=self.topic_queue_size)
         self.attention_target_img_sub = rospy.Subscriber(self.attention_target_img_topic, sensor_msgs.msg.Image, self.__attentionTargetImgMsgCallback, queue_size=self.topic_queue_size)
         self.annotated_tracking_stream_sub = rospy.Subscriber(self.annotated_tracking_stream_topic, sensor_msgs.msg.Image, self.__annotatedTrackingStreamMsgCallback, queue_size=self.topic_queue_size)
+        self.target_state_estimation_sub = rospy.Subscriber(self.target_state_estimation_topic, grace_attn_msgs.msg.EmotionAttentionResult, self.__targetStateEstimationMsgCallback, queue_size=self.topic_queue_size)
 
     def __stopBtnCallback(self):
         #Broadcast a stop signal to everyone
@@ -131,6 +134,13 @@ class Grace_GUI:
         self.source_0_annotated_img_vis = PIL.ImageTk.PhotoImage(image = PIL.Image.fromarray(cv2.cvtColor(cv2_img_from_ros_img_msg, cv2.COLOR_BGR2RGB)))
         self.source_0_img_canvas.itemconfig(self.source_0_img_container,image=self.source_0_annotated_img_vis)
 
+    def __targetStateEstimationMsgCallback(self,msg):
+        #Show the visualization image output from the state estiamtor including gaze, expression, headpose, etc.
+        cv2_img_from_ros_img_msg = self.cv_bridge.imgmsg_to_cv2(msg.visualization_frame,desired_encoding='bgr8')
+        self.source_0_state_estimation_img_vis = PIL.ImageTk.PhotoImage(image = PIL.Image.fromarray(cv2.cvtColor(cv2_img_from_ros_img_msg, cv2.COLOR_BGR2RGB)))
+        self.source_0_state_estimation_img_canvas.itemconfig(self.source_0_state_estimation_img_container,image=self.source_0_state_estimation_img_vis)
+  
+
     def constructGUI(self):
         #UI Frame
         self.grace_monitor_frame = Tk()
@@ -203,10 +213,17 @@ class Grace_GUI:
         self.source_0_target_img_canvas.place(y=350, x=50)
 
 
+        #Visualize the image output by the head pose, emotion and gaze
+        self.source_0_state_estimation_img_canvas = Canvas(self.grace_monitor_frame, width = 640, height = 480)
+        self.source_0_state_estimation_img_container = self.source_0_state_estimation_img_canvas.create_image(0,0, anchor=NW, image=self.blank_img)
+        self.source_0_state_estimation_img_canvas.place(y=850, x=50)
+
         #Visualize the image of the camera view
         self.source_0_img_canvas = Canvas(self.grace_monitor_frame, width = 640, height = 480)
         self.source_0_img_container = self.source_0_img_canvas.create_image(0,0, anchor=NW, image=self.blank_img)
         self.source_0_img_canvas.place(y=350, x=750)
+
+
             
 
         #Blocks
