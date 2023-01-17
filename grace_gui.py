@@ -6,7 +6,6 @@ from signal import SIGINT
 import threading
 import time
 from tkinter import font as tkFont
-import numpy
 import rospy
 import sensor_msgs.msg
 import std_msgs.msg
@@ -24,13 +23,16 @@ from tkinter import ttk
 
 import PIL.Image
 import PIL.ImageTk
+from datetime import datetime
+
+import numpy as np
 
 
 class Grace_GUI:
     node_name = "grace_gui"
     cv_bridge = CvBridge()
     topic_queue_size = 100
-    
+
     stop_topic = "/grace_proj/stop"
     toggle_attention_topic = "/grace_proj/toggle_attention"
     toggle_aversion_topic = "/grace_proj/toggle_aversion"
@@ -41,7 +43,10 @@ class Grace_GUI:
     attention_target_topic = "/grace_proj/attention_target_idx"
     attention_target_img_topic = "/grace_proj/attention_target_img"
     annotated_tracking_stream_topic = "/grace_proj/annotated_tracking_stream"
-    target_state_estimation_topic = "/grace_proj/emotion_attention_target_person_output_topic" 
+    target_state_estimation_topic = "/grace_proj/emotion_attention_target_person_output_topic"
+
+    # Topic of dialogue log
+    dialogue_log_topic = "/grace_proj/dialogue_log_topic"
 
 
     estimated_attention_generic_text = "Paying Attention? "
@@ -49,7 +54,7 @@ class Grace_GUI:
 
     def __init__(self):
         rospy.init_node(self.node_name)
-        
+
         self.stop_pub = rospy.Publisher(self.stop_topic, std_msgs.msg.Bool, queue_size=self.topic_queue_size)
         self.toggle_attention_pub = rospy.Publisher(self.toggle_attention_topic, std_msgs.msg.Bool, queue_size=self.topic_queue_size)
         self.toggle_aversion_pub = rospy.Publisher(self.toggle_aversion_topic, std_msgs.msg.Bool, queue_size=self.topic_queue_size)
@@ -67,6 +72,11 @@ class Grace_GUI:
         self.attention_target_img_sub = rospy.Subscriber(self.attention_target_img_topic, sensor_msgs.msg.Image, self.__attentionTargetImgMsgCallback, queue_size=self.topic_queue_size)
         self.annotated_tracking_stream_sub = rospy.Subscriber(self.annotated_tracking_stream_topic, sensor_msgs.msg.Image, self.__annotatedTrackingStreamMsgCallback, queue_size=self.topic_queue_size)
         self.target_state_estimation_sub = rospy.Subscriber(self.target_state_estimation_topic, grace_attn_msgs.msg.EmotionAttentionResult, self.__targetStateEstimationMsgCallback, queue_size=self.topic_queue_size)
+
+        ## Logging subscriber and listener
+        self.dialogue_log_publisher = rospy.Publisher(self.dialogue_log_topic, grace_attn_msgs.msg.DialogueLog, queue_size=self.topic_queue_size)
+        self.dialogue_log_subscriber = rospy.Subscriber(
+            self.dialogue_log_topic, grace_attn_msgs.msg.DialogueLog, callback= self.__dialogueLogCallback, queue_size=self.topic_queue_size)
 
         # UI Frame Elements
         self.grace_monitor_frame = None
@@ -95,9 +105,9 @@ class Grace_GUI:
         self.helv = None
 
         # Default Messages
-        self.logInfo_text = "Log line 1\nLog line 2: hahahahaha\nLog line 3: this is a long long log message\n\nI will try to maintain about 16-20 lines of log messages under this TKINTER GUI\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20"
-        
-        self.dialogue_transcript = 'A says: A young girl named Alice sits bored by a riverbank, where she suddenly spots a White Rabbit with a pocket watch and waistcoat lamenting that he is late. The surprised Alice follows him down a rabbit hole, which sends her down a lengthy plummet but to a safe landing.\n\nB says: Inside a room with a table, she finds a key to a tiny door, beyond which is a beautiful garden. As she ponders how to fit through the door, she discovers a bottle reading "Drink me".\n\nA says:Alice hesitantly drinks a portion of the bottle\'s contents, and to her astonishment, she shrinks small enough to enter the door. However, she had left the key upon the table and is unable to reach it. Alice then discovers and eats a cake, which causes her to grow to a tremendous size. As the unhappy Alice bursts into tears, the passing White Rabbit flees in a panic, dropping a fan and pair of gloves.'
+        self.logInfo_text = "Log line 1: starting conversation\nLog line 2: asking question 1\nLog line 3: feedback detected! emotion normal! intent continue! Apply policy \"ask_next\"\n\nI will try to maintain about 16-20 lines of log messages under this TKINTER GUI\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20"
+
+        self.dialogue_transcript = 'A says: A young girl named Alice sits bored by a riverbank, where she suddenly spots a White Rabbit with a pocket watch and waistcoat lamenting that he is late. The surprised Alice follows him down a rabbit hole, which sends her down a lengthy plummet but to a safe landing.\n\nB says: Inside a room with a table, she finds a key to a tiny door, beyond which is a beautiful garden. As she ponders how to fit through the door, she discovers a bottle reading "Drink me".\n\nA says:Alice hesitantly drinks a portion of the bottle\'s contents, and to her astonishment, she shrinks small enough to enter the door. However, she had left the key upon the table and is unable to reach it. Alice then discovers and eats a cake, which causes her to grow to a tremendous size. As the unhappy Alice bursts into tears, the passing White Rabbit flees in a panic, dropping a fan and pair of gloves.\n\nA says: A young girl named Alice sits bored by a riverbank, where she suddenly spots a White Rabbit with a pocket watch and waistcoat lamenting that he is late. The surprised Alice follows him down a rabbit hole, which sends her down a lengthy plummet but to a safe landing.\n\nB says: Inside a room with a table, she finds a key to a tiny door, beyond which is a beautiful garden. As she ponders how to fit through the door, she discovers a bottle reading "Drink me".\n\nA says:Alice hesitantly drinks a portion of the bottle\'s contents, and to her astonishment, she shrinks small enough to enter the door. However, she had left the key upon the table and is unable to reach it. Alice then discovers and eats a cake, which causes her to grow to a tremendous size. As the unhappy Alice bursts into tears, the passing White Rabbit flees in a panic, dropping a fan and pair of gloves.'
 
     def __stopBtnCallback(self):
         #Broadcast a stop signal to everyone
@@ -191,6 +201,40 @@ class Grace_GUI:
     def __endConversationCallback(self):
         # endConversation
         pass
+
+    def __dialogueLogCallback(self, msg):
+        # emergency_signal = msg.emergency
+        # disengage_signal = msg.disengage
+        # log_message = msg.log
+
+        # Handle log message
+        log_message = self.__update_log_message(msg.emergency.data, msg.disengage.data, msg.log.data)
+        self.logInfo_message_box.config(state='normal')
+        self.logInfo_message_box.insert('end', log_message)
+        self.logInfo_message_box.config(state='disabled')
+        self.logInfo_message_box.see('end')
+
+        # Handle dialogue transcript
+        dialogue_transcript = self.__update_dialogue_transcript(msg.transcript.data)
+        self.dialogue_transcript_box.config(state='normal')
+        self.dialogue_transcript_box.insert('end', dialogue_transcript)
+        self.dialogue_transcript_box.config(state='disabled')
+        self.dialogue_transcript_box.see('end')
+
+
+    def __update_dialogue_transcript(self, new_transcript):
+        
+        new_message = f"\n\n[{str(datetime.now())}]\n" + new_transcript
+        self.dialogue_transcript += new_message
+        return new_message
+
+    def __update_log_message(self, emergency_signal, disengage_signal, log_message):
+        
+        new_message = f"\n[{str(datetime.now())}]\nEmergency {emergency_signal}, disengage {disengage_signal}; " + log_message
+
+        self.logInfo_text = self.logInfo_text + new_message
+        
+        return new_message
 
     def progress_bar_step(self):
         self.orientation_progress_bar["value"] += 25
@@ -334,26 +378,38 @@ class Grace_GUI:
             self.grace_monitor_frame, text="Logging_Info_Area", font=self.helv
         )
         log_info_label.place(x=1150, y=20)
-        self.logInfo_message_box = Message(
-            self.grace_monitor_frame, anchor='nw', bg='white', font=self.helv,
-            text=self.logInfo_text,
-            width=700,
+        self.logInfo_message_box = Text(
+            self.grace_monitor_frame, bg='white', font=self.helv,
+            # text=self.logInfo_text,
+            width=70,
+            height=20,
         )
+        self.logInfo_message_box.insert("end", self.logInfo_text)
+        self.logInfo_message_box.see("end")
         self.logInfo_message_box.place(x=1150, y=50)
+        self.logInfo_message_box.config(state="disabled")
 
         # Display the dialog transcript
+
         dialogue_transcipt_label = Label(
             self.grace_monitor_frame, text="Dialogue_Transcript",
             font=self.helv,
         )
+        dialogue_transcript_scroll_bar = Scrollbar(self.grace_monitor_frame, orient='vertical')
+        # dialogue_transcript_scroll_bar.pack(side=RIGHT, fill='y')
         dialogue_transcipt_label.place(x=1150, y=450)
-        self.dialogue_transcript_box = Message(
-            self.grace_monitor_frame, anchor=NW, bg='white',
+        self.dialogue_transcript_box = Text(
+            self.grace_monitor_frame,
+            bg='white',
             font=self.helv,
-            text=self.dialogue_transcript,
-            width=700,
+            width=70,
+            height=17,
+            yscrollcommand=dialogue_transcript_scroll_bar.set
         )
+        self.dialogue_transcript_box.insert("end", self.dialogue_transcript)
+        self.dialogue_transcript_box.see("end")
         self.dialogue_transcript_box.place(x=1150, y=480)
+        self.dialogue_transcript_box.config(state='disabled')
 
 
         # Progress bar
@@ -368,8 +424,9 @@ class Grace_GUI:
         self.orientation_progress_bar.place(x=1150, y=850)
         self.orientation_progress_bar["value"] = 0
 
+        ## This is a test button only
         test_progress_bar_button=Button(
-            self.grace_monitor_frame, text="Progress", command=self.progress_bar_step
+            self.grace_monitor_frame, text="Progress\nTest Only", command=self.progress_bar_step
         )
         test_progress_bar_button.place(x=1800, y=850)
         ## progress bar status
