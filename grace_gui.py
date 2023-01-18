@@ -147,7 +147,10 @@ class Grace_GUI:
             msg.data)
 
     def __aversionTextMsgCallback(self,msg):
-        self.aversionStateText.config(text = msg.data)
+        try:
+            self.aversionStateText.config(text = msg.data)
+        except Exception as e:
+            print(e)
 
 
     # #Deprecated: now nodding is controlled directly by the dialogue system
