@@ -67,7 +67,7 @@ class Grace_GUI:
 
         self.stop_sub = rospy.Subscriber(self.stop_topic, std_msgs.msg.Bool, self.__stopMsgCallback, queue_size=self.topic_queue_size)
         self.start_sub = rospy.Subscriber(
-            self.start_topic, std_msgs.msg.Bool, callback=self.__startOfConversationCallback, queue_size=self.topic_queue_size
+            self.start_topic, std_msgs.msg.Bool, callback=self.__startOfConvMsgCallback, queue_size=self.topic_queue_size
         )
         self.toggle_attention_sub = rospy.Subscriber(self.toggle_attention_topic, std_msgs.msg.Bool, self.__toggleAttentionMsgCallback, queue_size=self.topic_queue_size)
         self.toggle_aversion_sub = rospy.Subscriber(self.toggle_aversion_topic, std_msgs.msg.Bool, self.__toggleAversionMsgCallback, queue_size=self.topic_queue_size)
@@ -210,7 +210,11 @@ class Grace_GUI:
         #Broadcast a stop signal to everyone
         self.stop_pub.publish(std_msgs.msg.Bool(True))
 
-    def __startOfConversationCallback(self):
+    def __startOfConvMsgCallback(self, msg):
+        #GUI update upon receiving the start message
+        pass
+
+    def __startOfConvBtnCallback(self):
         # Broadcast a start signal to everyone
         self.start_pub.publish(std_msgs.msg.Bool(True))
 
@@ -283,7 +287,7 @@ class Grace_GUI:
         start_btn = Button(
             self.grace_monitor_frame, text="START_CONVERSATION",
             font=self.helv,
-            command=self.__startOfConversationCallback
+            command=self.__startOfConvBtnCallback
         )
         start_btn.place(y=50, x=370)
 
