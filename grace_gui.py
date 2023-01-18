@@ -34,6 +34,7 @@ class Grace_GUI:
     topic_queue_size = 100
 
     stop_topic = "/grace_proj/stop"
+    start_topic = "/grace_proj/start"
     toggle_attention_topic = "/grace_proj/toggle_attention"
     toggle_aversion_topic = "/grace_proj/toggle_aversion"
     aversion_text_topic = "/grace_proj/aversion_text"
@@ -56,6 +57,8 @@ class Grace_GUI:
         rospy.init_node(self.node_name)
 
         self.stop_pub = rospy.Publisher(self.stop_topic, std_msgs.msg.Bool, queue_size=self.topic_queue_size)
+        self.start_pub = rospy.Publisher(self.start_topic, std_msgs.msg.Bool, queue_size=self.topic_queue_size)
+
         self.toggle_attention_pub = rospy.Publisher(self.toggle_attention_topic, std_msgs.msg.Bool, queue_size=self.topic_queue_size)
         self.toggle_aversion_pub = rospy.Publisher(self.toggle_aversion_topic, std_msgs.msg.Bool, queue_size=self.topic_queue_size)
         # #Deprecated: now nodding is controlled directly by the dialogue system
@@ -63,6 +66,9 @@ class Grace_GUI:
         self.attention_target_pub = rospy.Publisher(self.attention_target_topic, std_msgs.msg.Int16, queue_size=self.topic_queue_size)
 
         self.stop_sub = rospy.Subscriber(self.stop_topic, std_msgs.msg.Bool, self.__stopMsgCallback, queue_size=self.topic_queue_size)
+        self.start_sub = rospy.Subscriber(
+            self.start_topic, std_msgs.msg.Bool, callback=self.__startOfConversationCallback, queue_size=self.topic_queue_size
+        )
         self.toggle_attention_sub = rospy.Subscriber(self.toggle_attention_topic, std_msgs.msg.Bool, self.__toggleAttentionMsgCallback, queue_size=self.topic_queue_size)
         self.toggle_aversion_sub = rospy.Subscriber(self.toggle_aversion_topic, std_msgs.msg.Bool, self.__toggleAversionMsgCallback, queue_size=self.topic_queue_size)
         self.aversion_text_sub = rospy.Subscriber(self.aversion_text_topic, std_msgs.msg.String, self.__aversionTextMsgCallback, queue_size=self.topic_queue_size)
@@ -105,11 +111,11 @@ class Grace_GUI:
         self.helv = None
 
         # Default Messages
-        # self.logInfo_text = "Log line 1: starting conversation\nLog line 2: asking question 1\nLog line 3: feedback detected! emotion normal! intent continue! Apply policy \"ask_next\"\n\nI will try to maintain about 16-20 lines of log messages under this TKINTER GUI\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20"
-        self.logInfo_text = ''
+        self.logInfo_text = "Log line 1: starting conversation\nLog line 2: asking question 1\nLog line 3: feedback detected! emotion normal! intent continue! Apply policy \"ask_next\"\n\nI will try to maintain about 16-20 lines of log messages under this TKINTER GUI\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20"
+        self.logInfo_text = ""
 
-        # self.dialogue_transcript = 'A says: A young girl named Alice sits bored by a riverbank, where she suddenly spots a White Rabbit with a pocket watch and waistcoat lamenting that he is late. The surprised Alice follows him down a rabbit hole, which sends her down a lengthy plummet but to a safe landing.\n\nB says: Inside a room with a table, she finds a key to a tiny door, beyond which is a beautiful garden. As she ponders how to fit through the door, she discovers a bottle reading "Drink me".\n\nA says:Alice hesitantly drinks a portion of the bottle\'s contents, and to her astonishment, she shrinks small enough to enter the door. However, she had left the key upon the table and is unable to reach it. Alice then discovers and eats a cake, which causes her to grow to a tremendous size. As the unhappy Alice bursts into tears, the passing White Rabbit flees in a panic, dropping a fan and pair of gloves.\n\nA says: A young girl named Alice sits bored by a riverbank, where she suddenly spots a White Rabbit with a pocket watch and waistcoat lamenting that he is late. The surprised Alice follows him down a rabbit hole, which sends her down a lengthy plummet but to a safe landing.\n\nB says: Inside a room with a table, she finds a key to a tiny door, beyond which is a beautiful garden. As she ponders how to fit through the door, she discovers a bottle reading "Drink me".\n\nA says:Alice hesitantly drinks a portion of the bottle\'s contents, and to her astonishment, she shrinks small enough to enter the door. However, she had left the key upon the table and is unable to reach it. Alice then discovers and eats a cake, which causes her to grow to a tremendous size. As the unhappy Alice bursts into tears, the passing White Rabbit flees in a panic, dropping a fan and pair of gloves.\n\n你依家幾多歲？'
-        self.dialogue_transcript = ''
+        self.dialogue_transcript_text = 'A says: A young girl named Alice sits bored by a riverbank, where she suddenly spots a White Rabbit with a pocket watch and waistcoat lamenting that he is late. The surprised Alice follows him down a rabbit hole, which sends her down a lengthy plummet but to a safe landing.\n\nB says: Inside a room with a table, she finds a key to a tiny door, beyond which is a beautiful garden. As she ponders how to fit through the door, she discovers a bottle reading "Drink me".\n\nA says:Alice hesitantly drinks a portion of the bottle\'s contents, and to her astonishment, she shrinks small enough to enter the door. However, she had left the key upon the table and is unable to reach it. Alice then discovers and eats a cake, which causes her to grow to a tremendous size. As the unhappy Alice bursts into tears, the passing White Rabbit flees in a panic, dropping a fan and pair of gloves.\n\nA says: A young girl named Alice sits bored by a riverbank, where she suddenly spots a White Rabbit with a pocket watch and waistcoat lamenting that he is late. The surprised Alice follows him down a rabbit hole, which sends her down a lengthy plummet but to a safe landing.\n\nB says: Inside a room with a table, she finds a key to a tiny door, beyond which is a beautiful garden. As she ponders how to fit through the door, she discovers a bottle reading "Drink me".\n\nA says:Alice hesitantly drinks a portion of the bottle\'s contents, and to her astonishment, she shrinks small enough to enter the door. However, she had left the key upon the table and is unable to reach it. Alice then discovers and eats a cake, which causes her to grow to a tremendous size. As the unhappy Alice bursts into tears, the passing White Rabbit flees in a panic, dropping a fan and pair of gloves.\n\n你依家幾多歲？'
+        self.dialogue_transcript_text = ""
 
     def __stopBtnCallback(self):
         #TBD: Hardware power off
@@ -203,7 +209,10 @@ class Grace_GUI:
     def __endOfConvBtnCallback(self):
         #Broadcast a stop signal to everyone
         self.stop_pub.publish(std_msgs.msg.Bool(True))
-        pass
+
+    def __startOfConversationCallback(self):
+        # Broadcast a start signal to everyone
+        self.start_pub.publish(std_msgs.msg.Bool(True))
 
     def __dialogueLogCallback(self, msg):
         # emergency_signal = msg.emergency
@@ -228,7 +237,7 @@ class Grace_GUI:
     def __update_dialogue_transcript(self, new_transcript):
         
         new_message = f"\n\n[{str(datetime.now())}]\n" + new_transcript
-        self.dialogue_transcript += new_message
+        self.dialogue_transcript_text += new_message
         return new_message
 
     def __update_log_message(self, emergency_signal, disengage_signal, log_message):
@@ -264,10 +273,19 @@ class Grace_GUI:
 
         # END BOTTON
         end_btn = Button(
-            self.grace_monitor_frame, text="END_CONVERSATION", font=self.helv,
+            self.grace_monitor_frame, text="END_CONVERSATION", 
+            font=self.helv,
             command=self.__endOfConvBtnCallback
         )
         end_btn.place(y=50, x=150)
+
+        # START BUTTON
+        start_btn = Button(
+            self.grace_monitor_frame, text="START_CONVERSATION",
+            font=self.helv,
+            command=self.__startOfConversationCallback
+        )
+        start_btn.place(y=50, x=370)
 
         #Attention enabled state
         self.attention_enabled_tk = BooleanVar()
@@ -427,7 +445,7 @@ class Grace_GUI:
             # height=17,
             yscrollcommand=dialogue_transcript_scroll_bar.set
         )
-        self.dialogue_transcript_box.insert("end", self.dialogue_transcript)
+        self.dialogue_transcript_box.insert("end", self.dialogue_transcript_text)
         self.dialogue_transcript_box.see("end")
         # self.dialogue_transcript_box.place(x=1150, y=480)
         self.dialogue_transcript_box.config(state='disabled')
