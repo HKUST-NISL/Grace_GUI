@@ -110,8 +110,8 @@ class Grace_GUI:
         self.dialogue_transcript = 'A says: A young girl named Alice sits bored by a riverbank, where she suddenly spots a White Rabbit with a pocket watch and waistcoat lamenting that he is late. The surprised Alice follows him down a rabbit hole, which sends her down a lengthy plummet but to a safe landing.\n\nB says: Inside a room with a table, she finds a key to a tiny door, beyond which is a beautiful garden. As she ponders how to fit through the door, she discovers a bottle reading "Drink me".\n\nA says:Alice hesitantly drinks a portion of the bottle\'s contents, and to her astonishment, she shrinks small enough to enter the door. However, she had left the key upon the table and is unable to reach it. Alice then discovers and eats a cake, which causes her to grow to a tremendous size. As the unhappy Alice bursts into tears, the passing White Rabbit flees in a panic, dropping a fan and pair of gloves.\n\nA says: A young girl named Alice sits bored by a riverbank, where she suddenly spots a White Rabbit with a pocket watch and waistcoat lamenting that he is late. The surprised Alice follows him down a rabbit hole, which sends her down a lengthy plummet but to a safe landing.\n\nB says: Inside a room with a table, she finds a key to a tiny door, beyond which is a beautiful garden. As she ponders how to fit through the door, she discovers a bottle reading "Drink me".\n\nA says:Alice hesitantly drinks a portion of the bottle\'s contents, and to her astonishment, she shrinks small enough to enter the door. However, she had left the key upon the table and is unable to reach it. Alice then discovers and eats a cake, which causes her to grow to a tremendous size. As the unhappy Alice bursts into tears, the passing White Rabbit flees in a panic, dropping a fan and pair of gloves.'
 
     def __stopBtnCallback(self):
-        #Broadcast a stop signal to everyone
-        self.stop_pub.publish(std_msgs.msg.Bool(True))
+        #TBD: Hardware power off
+        pass
 
     def __stopMsgCallback(self, msg):
         #Adjustments related to other submodules would be invoked as those submodules
@@ -198,8 +198,9 @@ class Grace_GUI:
         self.estimatedAttentionText.config(text = self.estimated_attention_generic_text + msg.attention.data)
         self.estimatedEmotionText.config(text = self.estimated_emotion_generic_text + msg.emotion.data)
 
-    def __endConversationCallback(self):
-        # endConversation
+    def __endOfConvBtnCallback(self):
+        #Broadcast a stop signal to everyone
+        self.stop_pub.publish(std_msgs.msg.Bool(True))
         pass
 
     def __dialogueLogCallback(self, msg):
@@ -258,7 +259,7 @@ class Grace_GUI:
         # END BOTTON
         end_btn = Button(
             self.grace_monitor_frame, text="END_CONVERSATION", font=self.helv,
-            command=self.__endConversationCallback
+            command=self.__endOfConvBtnCallback
         )
         end_btn.place(y=50, x=150)
 
