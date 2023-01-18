@@ -374,7 +374,7 @@ class Grace_GUI:
         self.source_0_state_estimation_img_container = self.source_0_state_estimation_img_canvas.create_image(0,0, anchor=NW, image=self.blank_img)
         self.source_0_state_estimation_img_canvas.place(y=350, x=700)
         source_0_state_estimation_img_label = Label(
-            self.grace_monitor_frame, text="Annotated_image",
+            self.grace_monitor_frame, text="head pose & emotion",
         )
         source_0_state_estimation_img_label.place(y=360, x=700)
 
