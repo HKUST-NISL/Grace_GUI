@@ -339,7 +339,7 @@ class Grace_GUI:
         self.source_0_img_container = self.source_0_img_canvas.create_image(0,0, anchor=NW, image=self.blank_img)
         self.source_0_img_canvas.place(y=350, x=50)
         source_0_img_canvas_label = Label(
-            self.grace_monitor_frame, text="raw_camera_view",)
+            self.grace_monitor_frame, text="Camera View & Tracking Result",)
         source_0_img_canvas_label.place(y=360, x=50)
         
 
@@ -348,7 +348,7 @@ class Grace_GUI:
         self.source_0_target_img_container = self.source_0_target_img_canvas.create_image(0,0, anchor=NW, image=self.blank_img)
         self.source_0_target_img_canvas.place(y=660, x=700)
         source_0_target_img_label = Label(
-            self.grace_monitor_frame, text="image_of_the_target_person"
+            self.grace_monitor_frame, text="Registered Target"
         )
         source_0_target_img_label.place(y=670, x=700)
 
@@ -374,7 +374,7 @@ class Grace_GUI:
         self.source_0_state_estimation_img_container = self.source_0_state_estimation_img_canvas.create_image(0,0, anchor=NW, image=self.blank_img)
         self.source_0_state_estimation_img_canvas.place(y=350, x=700)
         source_0_state_estimation_img_label = Label(
-            self.grace_monitor_frame, text="head pose & emotion",
+            self.grace_monitor_frame, text="Head pose & Emotion",
         )
         source_0_state_estimation_img_label.place(y=360, x=700)
 
