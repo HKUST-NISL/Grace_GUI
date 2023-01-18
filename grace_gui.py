@@ -378,43 +378,58 @@ class Grace_GUI:
         )
         source_0_state_estimation_img_label.place(y=360, x=700)
 
-        # Display the log information
+        ## Display the log information
         log_info_label = Label(
             self.grace_monitor_frame, text="Logging_Info_Area", font=self.helv
         )
         log_info_label.place(x=1150, y=20)
+
+        log_info_frame = Frame(self.grace_monitor_frame, width=710, height=380, bg='white')
+        log_info_frame.place(x=1150, y=50)
+        log_info_frame.pack_propagate(False)
+
         self.logInfo_message_box = Text(
-            self.grace_monitor_frame, bg='white', font=self.helv,
+            log_info_frame, bg='white', font=self.helv,
+            wrap=WORD
             # text=self.logInfo_text,
-            width=70,
-            height=20,
+            # width=70,
+            # height=20,
         )
         self.logInfo_message_box.insert("end", self.logInfo_text)
         self.logInfo_message_box.see("end")
-        self.logInfo_message_box.place(x=1150, y=50)
+        # self.logInfo_message_box.place(x=1150, y=50)
         self.logInfo_message_box.config(state="disabled")
+        self.logInfo_message_box.pack(expand=YES, fill=BOTH)
 
-        # Display the dialog transcript
+
+        ## Display the dialog transcript
 
         dialogue_transcipt_label = Label(
             self.grace_monitor_frame, text="Dialogue_Transcript",
             font=self.helv,
         )
+        dialogue_transcipt_label.place(x=1150, y=450)
+
         dialogue_transcript_scroll_bar = Scrollbar(self.grace_monitor_frame, orient='vertical')
         # dialogue_transcript_scroll_bar.pack(side=RIGHT, fill='y')
-        dialogue_transcipt_label.place(x=1150, y=450)
+
+        dialogue_transcipt_frame = Frame(self.grace_monitor_frame, width=710, height=310, bg='white')
+        dialogue_transcipt_frame.place(x=1150, y=480)
+        dialogue_transcipt_frame.pack_propagate(False)
+
         self.dialogue_transcript_box = Text(
-            self.grace_monitor_frame,
+            dialogue_transcipt_frame,
             bg='white',
             font=self.helv,
-            width=70,
-            height=17,
+            # width=70,
+            # height=17,
             yscrollcommand=dialogue_transcript_scroll_bar.set
         )
         self.dialogue_transcript_box.insert("end", self.dialogue_transcript)
         self.dialogue_transcript_box.see("end")
-        self.dialogue_transcript_box.place(x=1150, y=480)
+        # self.dialogue_transcript_box.place(x=1150, y=480)
         self.dialogue_transcript_box.config(state='disabled')
+        self.dialogue_transcript_box.pack(expand=YES, fill=BOTH)
 
 
         # Progress bar
