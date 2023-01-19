@@ -168,8 +168,8 @@ class Grace_GUI:
     # def __noddingTextMsgCallback(self,msg):
     #     self.noddingStateText.config(text = msg.data)
     
-    def __guiClose(self):
-        self.grace_monitor_frame.destroy()
+    # def __guiClose(self):
+    #     self.grace_monitor_frame.destroy()
 
     def __targetRegBtnCallback(self): 
         if(self.attention_enabled_tk.get()):
