@@ -46,6 +46,10 @@ class Grace_GUI:
     annotated_tracking_stream_topic = "/grace_proj/annotated_tracking_stream"
     target_state_estimation_topic = "/grace_proj/emotion_attention_target_person_output_topic"
 
+    hr_CAM_cfg_server = "/hr/perception/camera_angle"
+    default_grace_chest_cam_motor_angle = 0.55
+    dynamic_reconfig_request_timeout = 0.5
+
     # Topic of dialogue log
     dialogue_log_topic = "/grace_proj/dialogue_log_topic"
 
@@ -83,6 +87,9 @@ class Grace_GUI:
         self.dialogue_log_publisher = rospy.Publisher(self.dialogue_log_topic, grace_attn_msgs.msg.DialogueLog, queue_size=self.topic_queue_size)
         self.dialogue_log_subscriber = rospy.Subscriber(
             self.dialogue_log_topic, grace_attn_msgs.msg.DialogueLog, callback= self.__dialogueLogCallback, queue_size=self.topic_queue_size)
+
+        self.dynamic_CAM_cfg_client = dynamic_reconfigure.client.Client(self.hr_CAM_cfg_server, timeout=self.dynamic_reconfig_request_timeout, config_callback=self.__configureGraceCAMCallback)
+
 
         # UI Frame Elements
         self.grace_monitor_frame = None
@@ -258,6 +265,20 @@ class Grace_GUI:
     def progress_bar_step(self):
         self.orientation_progress_bar["value"] += 25
 
+    def __setCameraAngle(self):
+		#tilt chest cam to a given angle
+        try:
+            target_angle = float(self.cam_ang_input.get(1.0, "end-1c"))
+            self.dynamic_CAM_cfg_client.update_configuration({"motor_angle":target_angle})
+        except Exception as e:
+            print(e)
+
+    def __configureGraceCAMCallback(self,config):
+        # # hr sdk seems to be repeatedly throwing back this response
+        # rospy.loginfo("Config set to {motor_angle}".format(**config))
+        pass
+
+
     def constructGUI(self):
         #UI Frame
         self.grace_monitor_frame = Tk()
@@ -293,6 +314,23 @@ class Grace_GUI:
             command=self.__startOfConvBtnCallback
         )
         start_btn.place(y=50, x=370)
+
+        #Camera angle adjustment
+        self.cam_ang_input = Text(
+            self.grace_monitor_frame,
+            font=self.helv,
+            height = 1,
+            width = 12)
+        self.cam_ang_input.pack()
+        self.cam_ang_input.insert(END,str(self.default_grace_chest_cam_motor_angle))
+        self.cam_ang_input.place(y=50, x=650)
+        cam_btn = Button(
+            self.grace_monitor_frame, text="SET CAM",
+            font=self.helv,
+            command=self.__setCameraAngle
+        )
+        cam_btn.place(y=50, x=750)
+        self.__setCameraAngle()
 
         #Attention enabled state
         self.attention_enabled_tk = BooleanVar()
