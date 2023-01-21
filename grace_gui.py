@@ -26,7 +26,7 @@ import PIL.ImageTk
 from datetime import datetime
 
 import numpy as np
-
+from .grace_switch import Grace_Switch
 
 class Grace_GUI:
     node_name = "grace_gui"
@@ -59,6 +59,8 @@ class Grace_GUI:
 
     def __init__(self):
         rospy.init_node(self.node_name)
+
+        self.switch_class = Grace_Switch()
 
         self.stop_pub = rospy.Publisher(self.stop_topic, std_msgs.msg.Bool, queue_size=self.topic_queue_size)
         self.start_pub = rospy.Publisher(self.start_topic, std_msgs.msg.Bool, queue_size=self.topic_queue_size)
@@ -125,8 +127,7 @@ class Grace_GUI:
         self.dialogue_transcript_text = ""
 
     def __stopBtnCallback(self):
-        #TBD: Hardware power off
-        pass
+        self.switch_class.toggle_replay_switch_state(False)
 
     def __stopMsgCallback(self, msg):
         #Adjustments related to other submodules would be invoked as those submodules
