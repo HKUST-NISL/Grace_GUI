@@ -26,6 +26,7 @@ import PIL.ImageTk
 from datetime import datetime
 
 import numpy as np
+import re
 from .grace_switch import Grace_Switch
 
 class Grace_GUI:
@@ -252,16 +253,34 @@ class Grace_GUI:
     def __update_dialogue_transcript(self, new_transcript):
         
         new_message = f"\n\n[{str(datetime.now())}]\n" + new_transcript
-        self.dialogue_transcript_text += new_message
+
+        # TODO: write all dialogue to file in the future
+        # self.dialogue_transcript_text += new_message
         return new_message
 
     def __update_log_message(self, emergency_signal, disengage_signal, log_message):
+
+        self.set_progress_bar(log_message)
         
         new_message = f"\n[{str(datetime.now())}]\nEmergency {emergency_signal}, disengage {disengage_signal}; " + log_message
 
-        self.logInfo_text = self.logInfo_text + new_message
+        # TODO: write all log to file in the future
+        # self.logInfo_text = self.logInfo_text + new_message
         
         return new_message
+
+    def set_progress_bar(self, log_message):
+        pattern = re.compile(r"[nN][oO]:[ ]*(\d+)")
+        search_result = pattern.search(log_message)
+        if search_result:
+            progress_number = search_result.group(1)
+            self.orientation_progress_bar["value"] = 25*int(progress_number)
+
+    def __clearLog(self):
+        self.logInfo_message_box.config(state='normal')
+        self.logInfo_message_box.delete(1.0, END)
+        self.logInfo_message_box.config(state='disabled')
+        
 
     def progress_bar_step(self):
         self.orientation_progress_bar["value"] += 25
@@ -291,7 +310,7 @@ class Grace_GUI:
         self.grace_monitor_frame.call('tk', 'scaling', dpi/72)
 
         # Define font styles
-        self.helv = tkFont.Font(family='Helvetica', size=10, weight='bold')
+        self.helv = tkFont.Font(family='Helvetica', size=9, weight='bold')
 
         # STOP BOTTON
         stop_btn = Button(self.grace_monitor_frame,
@@ -302,11 +321,11 @@ class Grace_GUI:
 
         # END BOTTON
         end_btn = Button(
-            self.grace_monitor_frame, text="END_CONVERSATION", 
+            self.grace_monitor_frame, text="END_CONVERSATION",
             font=self.helv,
             command=self.__endOfConvBtnCallback
         )
-        end_btn.place(y=50, x=150)
+        end_btn.place(y=50, x=180)
 
         # START BUTTON
         start_btn = Button(
@@ -384,18 +403,18 @@ class Grace_GUI:
             height = 1,
             width = 12)
         self.target_reg_input.pack()
-        self.target_reg_input.place(y=855, x=450)
+        self.target_reg_input.place(y=855, x=410)
 
         confirm_target_reg = Button(self.grace_monitor_frame,
                                 text = "REG",
                                 font=self.helv,
                                 command = self.__targetRegBtnCallback)
-        confirm_target_reg.place(y=850, x=550)
+        confirm_target_reg.place(y=850, x=580)
 
         target_selection_hint = Label(
             self.grace_monitor_frame, text="Enter Target ID to Focus on:", font=self.helv,
         )
-        target_selection_hint.place(y=855, x=80)
+        target_selection_hint.place(y=855, x=60)
 
 
         self.blank_img = PIL.ImageTk.PhotoImage(image=PIL.Image.new("RGB", (640, 480)))
@@ -445,6 +464,13 @@ class Grace_GUI:
         source_0_state_estimation_img_label.place(y=320, x=700)
 
         ## Display the log information
+        clear_log_button = Button(
+            self.grace_monitor_frame, text="CLEAR LOG",
+            font=tkFont.Font(family='Helvetica', size=6),
+            command=self.__clearLog
+        )
+        clear_log_button.place(x=1400, y=15)
+
         log_info_label = Label(
             self.grace_monitor_frame, text="Logging_Info_Area", font=self.helv
         )
@@ -455,7 +481,8 @@ class Grace_GUI:
         log_info_frame.pack_propagate(False)
 
         self.logInfo_message_box = Text(
-            log_info_frame, bg='white', font=self.helv,
+            log_info_frame, bg='white', 
+            font=tkFont.Font(family="Helvetica", size=8),
             wrap=WORD
             # text=self.logInfo_text,
             # width=70,
@@ -486,7 +513,7 @@ class Grace_GUI:
         self.dialogue_transcript_box = Text(
             dialogue_transcipt_frame,
             bg='white',
-            font=self.helv,
+            font=tkFont.Font(family="Helvetica", size=8),
             # width=70,
             # height=17,
             yscrollcommand=dialogue_transcript_scroll_bar.set
@@ -517,7 +544,7 @@ class Grace_GUI:
         test_progress_bar_button.place(x=1800, y=850)
         ## progress bar status
         progress_message_0 = Label(
-            self.grace_monitor_frame, text="start", font=self.helv
+            self.grace_monitor_frame, text="START", font=self.helv
         )
         progress_message_0.place(x=1150, y=890)
         progress_message_1 = Label(
@@ -536,7 +563,7 @@ class Grace_GUI:
         progress_message_3.place(x=1350+120+50+25, y=890)
 
         progress_message_4 = Label(
-            self.grace_monitor_frame, text="End", font=self.helv, anchor=CENTER
+            self.grace_monitor_frame, text="END", font=self.helv, anchor=CENTER
         )
         progress_message_4.place(x=1150+560, y=890)
 
