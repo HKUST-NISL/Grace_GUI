@@ -280,6 +280,10 @@ class Grace_GUI:
         self.logInfo_message_box.config(state='normal')
         self.logInfo_message_box.delete(1.0, END)
         self.logInfo_message_box.config(state='disabled')
+
+        self.dialogue_transcript_box.config(state='normal')
+        self.dialogue_transcript_box.delete(1.0, END)
+        self.dialogue_transcript_box.config(state='disabled')
         
 
     def progress_bar_step(self):
@@ -465,7 +469,7 @@ class Grace_GUI:
 
         ## Display the log information
         clear_log_button = Button(
-            self.grace_monitor_frame, text="CLEAR LOG",
+            self.grace_monitor_frame, text="CLEAR_ALL_LOG",
             font=tkFont.Font(family='Helvetica', size=6),
             command=self.__clearLog
         )
