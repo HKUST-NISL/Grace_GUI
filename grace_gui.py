@@ -274,7 +274,7 @@ class Grace_GUI:
         search_result = pattern.search(log_message)
         if search_result:
             progress_number = search_result.group(1)
-            self.orientation_progress_bar["value"] = 25*int(progress_number)
+            self.orientation_progress_bar["value"] = 100*int(progress_number)/3
 
     def __clearLog(self):
         self.logInfo_message_box.config(state='normal')
@@ -283,7 +283,7 @@ class Grace_GUI:
         
 
     def progress_bar_step(self):
-        self.orientation_progress_bar["value"] += 25
+        self.orientation_progress_bar["value"] += 100/3
 
     def __setCameraAngle(self):
 		#tilt chest cam to a given angle
@@ -532,7 +532,7 @@ class Grace_GUI:
         )
         progress_bar_label.place(x=1150, y=810)
         self.orientation_progress_bar = ttk.Progressbar(
-            self.grace_monitor_frame, orient=HORIZONTAL, length=600, mode="indeterminate"
+            self.grace_monitor_frame, orient=HORIZONTAL, length=480, mode="indeterminate"
         )
         self.orientation_progress_bar.place(x=1150, y=850)
         self.orientation_progress_bar["value"] = 0
@@ -562,10 +562,10 @@ class Grace_GUI:
         )
         progress_message_3.place(x=1350+120+50+25, y=890)
 
-        progress_message_4 = Label(
-            self.grace_monitor_frame, text="END", font=self.helv, anchor=CENTER
-        )
-        progress_message_4.place(x=1150+560, y=890)
+        # progress_message_4 = Label(
+        #     self.grace_monitor_frame, text="END", font=self.helv, anchor=CENTER
+        # )
+        # progress_message_4.place(x=1150+560, y=890)
 
 
 
